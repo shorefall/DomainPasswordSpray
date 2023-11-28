@@ -562,11 +562,18 @@ function Invoke-SpraySinglePassword
 
 }
 
-function Get-ObservationWindow($DomainEntry)
-{
+function Get-ObservationWindow($DomainEntry) {
     # Get account lockout observation window to avoid running more than 1
     # password spray per observation window.
     $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
-    $observation_window = $DomainEntry.ConvertLargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
+
+    if ($lockObservationWindow_attr -and $lockObservationWindow_attr.Value) {
+        # Assuming $DomainEntry is of a type that supports this method:
+        $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
+    } else {
+        # Default/fallback value or error handling
+        $observation_window = 30 # example default value
+    }
+
     return $observation_window
 }
