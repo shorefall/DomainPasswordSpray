@@ -455,7 +455,7 @@ function Get-DomainUserList
         Write-Host -ForegroundColor "yellow" "[*] Removing users within 1 attempt of locking out from list."
         foreach ($user in $AllUserObjects)
         {
-            # Getting bad password counts and lst bad password time for each user
+            # Getting bad password counts and last bad password time for each user
             $badcount = $user.Properties.badpwdcount
             $samaccountname = $user.Properties.samaccountname
             try
@@ -478,7 +478,7 @@ function Get-DomainUserList
                 # or if the time since the last failed login is greater than the domain
                 # observation window add user to spray list
                 if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -gt 1))
-                                {
+                {
                     $UserListArray += $samaccountname
                 }
             }
