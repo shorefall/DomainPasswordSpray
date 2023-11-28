@@ -563,16 +563,19 @@ function Invoke-SpraySinglePassword
 }
 
 function Get-ObservationWindow($DomainEntry) {
-    # Get account lockout observation window to avoid running more than 1
-    # password spray per observation window.
-    $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
+    # Check if $DomainEntry and the required property are not null
+    if ($DomainEntry -and $DomainEntry.Properties['lockoutObservationWindow']) {
+        $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
 
-    if ($lockObservationWindow_attr -and $lockObservationWindow_attr.Value) {
-        # Assuming $DomainEntry is of a type that supports this method:
-        $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
+        if ($lockObservationWindow_attr.Value) {
+            # Assuming $DomainEntry is of a type that supports this method:
+            $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
+        } else {
+            $observation_window = 30 # Default/fallback value
+        }
     } else {
-        # Default/fallback value or error handling
-        $observation_window = 30 # example default value
+        Write-Host "The lockoutObservationWindow property is not available or $DomainEntry is null."
+        $observation_window = 30 # Default/fallback value or error handling
     }
 
     return $observation_window
