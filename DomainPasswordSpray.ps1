@@ -563,19 +563,25 @@ function Invoke-SpraySinglePassword
 }
 
 function Get-ObservationWindow($DomainEntry) {
-    # Check if $DomainEntry and the required property are not null
-    if ($DomainEntry -and $DomainEntry.Properties['lockoutObservationWindow']) {
+    # Ensure $DomainEntry is not null
+    if (-not $DomainEntry) {
+        Write-Host "DomainEntry object is null."
+        return 30 # Default value or error handling
+    }
+
+    # Check if lockoutObservationWindow property exists
+    if ($DomainEntry.Properties -and $DomainEntry.Properties['lockoutObservationWindow']) {
         $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
 
         if ($lockObservationWindow_attr.Value) {
-            # Assuming $DomainEntry is of a type that supports this method:
+            # Convert Large Integer to Int64
             $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
         } else {
-            $observation_window = 30 # Default/fallback value
+            $observation_window = 30 # Default value
         }
     } else {
-        Write-Host "The lockoutObservationWindow property is not available or $DomainEntry is null."
-        $observation_window = 30 # Default/fallback value or error handling
+        Write-Host "The lockoutObservationWindow property is not available."
+        $observation_window = 30 # Default value or error handling
     }
 
     return $observation_window
