@@ -367,6 +367,7 @@ function Get-DomainUserList
 
     # Getting the AD behavior version to determine if fine-grained password policies are possible
     $behaviorversion = [int] $objDeDomain.Properties['msds-behavior-version'].item(0)
+	$observation_window = Get-ObservationWindow $objDeDomain
     if ($behaviorversion -ge 3)
     {
         # Determine if there are any fine-grained password policies
@@ -569,16 +570,12 @@ function Get-ObservationWindow($DomainEntry) {
         return 30 # Default value or error handling
     }
 
-    # Check if lockoutObservationWindow property exists
-    if ($DomainEntry.Properties -and $DomainEntry.Properties['lockoutObservationWindow']) {
-        $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
+    # Assuming $DomainEntry has lockoutObservationWindow property
+    $lockObservationWindow_attr = $DomainEntry.Properties['lockoutObservationWindow']
 
-        if ($lockObservationWindow_attr.Value) {
-            # Convert Large Integer to Int64
-            $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr.Value) / -600000000
-        } else {
-            $observation_window = 30 # Default value
-        }
+    if ($lockObservationWindow_attr) {
+        # Convert Large Integer to Int64
+        $observation_window = [System.DirectoryServices.ActiveDirectory.Utils]::LargeIntegerToInt64($lockObservationWindow_attr[0]) / -600000000
     } else {
         Write-Host "The lockoutObservationWindow property is not available."
         $observation_window = 30 # Default value or error handling
